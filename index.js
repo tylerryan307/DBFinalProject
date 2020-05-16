@@ -5,14 +5,16 @@ import User from './user.js';
 import express from 'express';
 import Service from './service.js';
 import Shelter from './shelter.js';
+import BodyParser from 'body-parser';
+import passport from 'passport';
 
 const app = express();  // the actual web server
 
 // port Express will listen on.
 const port = 3000;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));   // this allows us to work with x-www-url-encoded data (used primarily in JSON Web Token authentication processes)
+app.use(BodyParser.json());
+app.use(BodyParser.urlencoded({ extended: true }));   // this allows us to work with x-www-url-encoded data (used primarily in JSON Web Token authentication processes)
 
 // Make Express now listen for HTTP traffic
 app.listen(port, () => {
@@ -23,7 +25,7 @@ app.listen(port, () => {
 // define a GET endpoint for retrieving all User documents.
 ////////////////////////////////////////////////////////////
 
-app.get("/user", passport.authenticate("jwt", { session: false }), async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
+app.get("/users", passport.authenticate("jwt", { session: false }), async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
     // get all of the User docs from MongoDB
     console.log({ theJWTContents: req.user });
     try {
@@ -38,7 +40,7 @@ app.get("/user", passport.authenticate("jwt", { session: false }), async(req, re
 }); 
 
 // Make an endpoint that returns one User doc, based on id
-app.get("/user/:userId", async(req, res) => { // the ":userId" is a url parameter, in this case, the ID of a specific User Document
+app.get("/users/:userId", async(req, res) => { // the ":userId" is a url parameter, in this case, the ID of a specific User Document
     try {
         // get the id from the url request
         let id = req.params.userId;
@@ -53,7 +55,7 @@ app.get("/user/:userId", async(req, res) => { // the ":userId" is a url paramete
 });
 
 // Make a POST endpoint that will create a User doc
-app.post("/user", async(req, res) => {
+app.post("/users", async(req, res) => {
     try {
         // Parse out all POST data, validate it, and use it to create a new User Document
         // DO some data cleanup.  For production, you MUST do more than this.
@@ -90,7 +92,7 @@ app.post("/user", async(req, res) => {
     }
 });
 
-app.post("/user/authenticate", async(req, res) =>{
+app.post("/users/authenticate", async(req, res) =>{
     // take username and password out of the request body
     try {
         if(req.body.username && req.body.password) {
@@ -109,7 +111,7 @@ app.post("/user/authenticate", async(req, res) =>{
 });
 
 // define a PUT endpoint for updating an existing User document
-app.put("/user/:userId", async(req, res) => {
+app.put("/users/:userId", async(req, res) => {
     try {
         // Get the id
         let id = req.params.userId;
@@ -136,7 +138,7 @@ app.put("/user/:userId", async(req, res) => {
 });
 
 // Make a delete endpoint to delete one User doc
-app.delete("/user/:userId", async(req, res) =>{
+app.delete("/users/:userId", async(req, res) =>{
     try {
         // get the id
         let id = req.params.userId;
@@ -156,7 +158,7 @@ app.delete("/user/:userId", async(req, res) =>{
 //Shelter Endpoints
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.get("/shelter", passport.authenticate("jwt", { session: false }),  async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
+app.get("/shelters", passport.authenticate("jwt", { session: false }),  async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
     // get all of the Shelter docs from MongoDB
     try {
         let allShelterDocs = await Shelter.read();
@@ -170,7 +172,7 @@ app.get("/shelter", passport.authenticate("jwt", { session: false }),  async(req
 }); 
 
 // Make an endpoint that returns one Shelter doc, based on id
-app.get("/shelter/:shelterId", async(req, res) => { // the ":shelterId" is a url parameter, in this case, the ID of a specific Shelter Document
+app.get("/shelters/:shelterId", async(req, res) => { // the ":shelterId" is a url parameter, in this case, the ID of a specific Shelter Document
     try {
         // get the id from the url request
         let id = req.params.shelterId;
@@ -185,7 +187,7 @@ app.get("/shelter/:shelterId", async(req, res) => { // the ":shelterId" is a url
 });
 
 // Make a POST endpoint that will create a Shelter doc
-app.post("/shelter", async(req, res) => {
+app.post("/shelters", async(req, res) => {
     try {
         
         if(req.body.shelterName 
@@ -208,7 +210,7 @@ app.post("/shelter", async(req, res) => {
 });
 
 // define a PUT endpoint for updating an existing Shelter document
-app.put("/shelter/:shelterId", async(req, res) => {
+app.put("/shelters/:shelterId", async(req, res) => {
     try {
         // Get the id
         let id = req.params.shelterId;
@@ -235,7 +237,7 @@ app.put("/shelter/:shelterId", async(req, res) => {
 });
 
 // Make a delete endpoint to delete one Shelter doc
-app.delete("/people/:shelterId", async(req, res) =>{
+app.delete("/shelters/:shelterId", async(req, res) =>{
     try {
         // get the id
         let id = req.params.shelterId;
@@ -256,7 +258,7 @@ app.delete("/people/:shelterId", async(req, res) =>{
 // Services Endpoints
 //////////////////////////////////////////////////////////////////////////////////////
 
-app.get("/service", passport.authenticate("jwt", { session: false }),  async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
+app.get("/services", passport.authenticate("jwt", { session: false }),  async(req, res) => { // Remeber to make your req,res functions async if you are calling any async functions and using await.
     // get all of the Service docs from MongoDB
     try {
         let allServiceDocs = await Service.read();
@@ -270,7 +272,7 @@ app.get("/service", passport.authenticate("jwt", { session: false }),  async(req
 }); 
 
 // Make an endpoint that returns one Service doc, based on id
-app.get("/service/:serviceId", async(req, res) => { // the ":serviceId" is a url parameter, in this case, the ID of a specific Service Document
+app.get("/services/:serviceId", async(req, res) => { // the ":serviceId" is a url parameter, in this case, the ID of a specific Service Document
     try {
         // get the id from the url request
         let id = req.params.serviceId;
@@ -285,7 +287,7 @@ app.get("/service/:serviceId", async(req, res) => { // the ":serviceId" is a url
 });
 
 // Make a POST endpoint that will create a Service doc
-app.post("/service", async(req, res) => {
+app.post("/services", async(req, res) => {
     try {
         
         if(req.body.serviceName 
@@ -308,7 +310,7 @@ app.post("/service", async(req, res) => {
 });
 
 // define a PUT endpoint for updating an existing Service document
-app.put("/service/:serviceId", async(req, res) => {
+app.put("/services/:serviceId", async(req, res) => {
     try {
         // Get the id
         let id = req.params.serviceId;
@@ -335,7 +337,7 @@ app.put("/service/:serviceId", async(req, res) => {
 });
 
 // Make a delete endpoint to delete one Service doc
-app.delete("/people/:serviceId", async(req, res) =>{
+app.delete("/services/:serviceId", async(req, res) =>{
     try {
         // get the id
         let id = req.params.serviceId;

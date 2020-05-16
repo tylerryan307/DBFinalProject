@@ -13,5 +13,5 @@ export default class Service extends Entity {
 
     //set the defined schema as a model for Mongoose to use
    
-    static model = mongoose.model("ServicesList", ServicesList.schema, "ServicesList");
+    static model = mongoose.model("ServicesList", Service.schema, "ServicesList");
 }
