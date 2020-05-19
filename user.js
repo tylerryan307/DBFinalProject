@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Entity from "./entity.js";
 import bcrypt from "bcrypt";
 
+
 export default class User extends Entity {
     // define 2 static properties pertaining to the schema and model of this entity type.
     static schema = new mongoose.Schema({

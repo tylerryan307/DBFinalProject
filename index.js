@@ -1,5 +1,6 @@
 // bring in the MongoDB Connection import
 import './dbconnection.js';
+import './passport.js';
 
 import User from './user.js';
 import express from 'express';
@@ -7,6 +8,7 @@ import Service from './service.js';
 import Shelter from './shelter.js';
 import BodyParser from 'body-parser';
 import passport from 'passport';
+import JWT from 'jsonwebtoken';
 
 const app = express();  // the actual web server
 
@@ -40,7 +42,7 @@ app.get("/users", passport.authenticate("jwt", { session: false }), async(req, r
 }); 
 
 // Make an endpoint that returns one User doc, based on id
-app.get("/users/:userId", async(req, res) => { // the ":userId" is a url parameter, in this case, the ID of a specific User Document
+app.get("/users/:userId", passport.authenticate("jwt", { session: false }), async(req, res) => { // the ":userId" is a url parameter, in this case, the ID of a specific User Document
     try {
         // get the id from the url request
         let id = req.params.userId;
@@ -55,16 +57,9 @@ app.get("/users/:userId", async(req, res) => { // the ":userId" is a url paramet
 });
 
 // Make a POST endpoint that will create a User doc
-app.post("/users", async(req, res) => {
+app.post("/users", passport.authenticate("jwt", { session: false }), async(req, res) => {
     try {
-        // Parse out all POST data, validate it, and use it to create a new User Document
-        // DO some data cleanup.  For production, you MUST do more than this.
-        //console.log(`req.body.firstName = ${req.body.firstName}`);
-        //console.log(`req.body.lastName = ${req.body.lastName}`);
-        //console.log(`req.body = ${req.body}`);
-        //for(let [key, value] of Object.entries(req.body)) {
-        //    console.log(`req.body[${key}] = ${value}`);
-        //}
+        
         if(req.body.firstName 
             && req.body.lastName 
             && req.body.username
@@ -96,22 +91,36 @@ app.post("/users/authenticate", async(req, res) =>{
     // take username and password out of the request body
     try {
         if(req.body.username && req.body.password) {
-            let theUsername = req.body.username;
-            let thePassword = req.body.password;
-            // Now get the User doc that matches with that username
-            let theUserDocs = await User.read({ username: theUsername });
-            let theUserDoc = theUserDocs[0];    // hopefully, this is the only Document in the User collection with the given username.
-            let authResult = await User.authenticate(thePassword, theUserDoc);
-            res.send({ auth: authResult });
-        }
-    } catch (err) {
-        console.log(err);
-        res.send(err);
-    }
+            // be sure to sanitize your data first.  Just keeping it simple here for demonstration
+            // make Passport perform the authentication.
+            // NOTE: since we're using JWTs for authentication, we WILL NOT use server-side sessions, so { session: false } 
+            passport.authenticate("local", { session: false }, (err, user, info) => {
+                // check to see if authenticate() had any issues, so check err and user
+                if (err || !user) {
+                    return res.status(400).json({
+                        message: "Some happened and authentication was unsuccessful.",
+                        user: user
+                    });
+                }
+                // assuming no issues, go ahead and "login" the person via Passport
+                req.login(user, { session: false }, (err) => {
+                    if (err) {
+                        res.send(err);
+                    }
+                    // if no error, generate the JWT to signify that the person logged in successfully,
+                    const token = JWT.sign(user.toJSON(), "ThisNeedsToBeAStrongPasswordPleaseChange");
+                    return res.json({ user, token });
+                });
+            })(req, res);    // NOTE: we're passing req and res to the next middleware (just memorize this)
+         }
+     } catch (err) {
+         console.log(err);
+         res.send(err);
+     }
 });
 
 // define a PUT endpoint for updating an existing User document
-app.put("/users/:userId", async(req, res) => {
+app.put("/users/:userId", passport.authenticate("jwt", { session: false }), async(req, res) => {
     try {
         // Get the id
         let id = req.params.userId;
@@ -138,7 +147,7 @@ app.put("/users/:userId", async(req, res) => {
 });
 
 // Make a delete endpoint to delete one User doc
-app.delete("/users/:userId", async(req, res) =>{
+app.delete("/users/:userId", passport.authenticate("jwt", { session: false }), async(req, res) =>{
     try {
         // get the id
         let id = req.params.userId;

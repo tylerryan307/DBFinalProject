@@ -11,17 +11,17 @@ const ExtractJWT = passportJWT.ExtractJwt;
 
 // First, configure Passport to use the Local Strategy for authentication (i.e.: the username and password known to this system)
 passport.use(new LocalStrategy({
-    usernameField: "username",
-    passwordField: "password"
+    usernameField: "UserId",
+    passwordField: "UserPassword"
 },
 // in addition to providing the above JSON object telling which fields are for authentication, you have to provide
 // a function that will actually handle the authentication process
-async function(username, password, callback) {
+async function(UserId, UserPassword, callback) {
     // actually check the User's password and username
     try {
-        let theUserDocs = await User.read({ username: username });
+        let theUserDocs = await User.read({ UserId: UserId });
         let theUserDoc = theUserDocs[0];
-        let authresult = await User.authenticate(password, theUserDoc);
+        let authresult = await User.authenticate(theUserDoc, UserPassword);
         // authresult will be true or false: true if username and password are good, false otherwise
         if(authresult) {
             // login's good.
@@ -41,7 +41,7 @@ async function(username, password, callback) {
 // Now config Passport to verify any generated JWTs
 passport.use(new JWTStrategy({
     jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-    secretOrKey: 'ThisNeedsToBeAStrongPasswordPleaseChange' // I recommend that you use a key, instead of a password.
+    secretOrKey: 'Thisismyplaceholderpassworduntilkey' // I recommend that you use a key, instead of a password.
 },
 // Provide a function that will verify any JWT
 function (JWT, callback) {
